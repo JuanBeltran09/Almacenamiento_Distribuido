@@ -1,0 +1,174 @@
+/* Tipografía base */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* Títulos */
+h1, h2, h3, h4, h5 {
+    color: #2c3e50;
+}
+
+/* Formularios */
+input[type="text"],
+input[type="password"],
+input[type="file"],
+button,
+textarea {
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 15px;
+}
+
+/* Botones personalizados */
+button {
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+    transform: scale(1.02);
+}
+
+/* Tarjetas */
+.card {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Iconos en la vista previa */
+.card .fa-file,
+.card .fa-file-pdf,
+.card .fa-file-word,
+.card .fa-file-excel,
+.card .fa-file-image,
+.card .fa-file-powerpoint,
+.card .fa-file-archive {
+    font-size: 3rem;
+}
+
+/* Barra de progreso */
+progress {
+    height: 12px;
+    border-radius: 20px;
+    overflow: hidden;
+    background-color: #eee;
+}
+
+progress::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 20px;
+}
+
+progress::-webkit-progress-value {
+    background-color: #0d6efd;
+    border-radius: 20px;
+}
+
+progress::-moz-progress-bar {
+    background-color: #0d6efd;
+    border-radius: 20px;
+}
+
+/* Estilos para alertas de mensajes */
+.message {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.message.success {
+    background-color: #e7f9e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.message.error {
+    background-color: #fce4e4;
+    color: #c62828;
+    border: 1px solid #e57373;
+}
+
+/* Vistas pequeñas */
+@media (max-width: 576px) {
+    .card .fa-file,
+    .card .fa-file-pdf,
+    .card .fa-file-word,
+    .card .fa-file-excel,
+    .card .fa-file-image,
+    .card .fa-file-powerpoint,
+    .card .fa-file-archive {
+        font-size: 2.2rem;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    gap: 50px;
+    background-color: #f8f9fa;
+}
+
+.login-image img {
+    max-width: 300px;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.login-form {
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 350px;
+}
+
+.login-form h2 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: #2c3e50;
+}
+
+.login-form input {
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.login-form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.login-form button:hover {
+    background-color: #0b5ed7;
+}
+
+.login-form p {
+    text-align: center;
+    margin-top: 10px;
+}
+

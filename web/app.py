@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, send_file, session, redirect, url_for
+from flask import Flask, render_template, request, send_file, session, redirect, url_for, flash, get_flashed_messages
 import os, hashlib, requests
 from crypto import encrypt_chunk, decrypt_chunk
 from werkzeug.utils import secure_filename
 from io import BytesIO
 from pymongo import MongoClient
-
+from datetime import datetime
 
 client = MongoClient("mongodb+srv://juan:1234@cluster0.k7xgbyp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client['distributed_storage']
@@ -12,31 +12,35 @@ users_collection = db['users']
 files_collection = db['files']
 
 app = Flask(__name__)
+app.secret_key = "clave_secreta"
 
-TRACKER_URL = "http://192.168.43.156:5000"
+TRACKER_URL = "http://192.168.1.51:5000" #colocar id sebastian
 NODES = [
-    "http://192.168.43.37:5001", #Camilo
-    "http://192.168.43.156:5002", # Yo
-    "http://192.168.43.35:5003" #Daniel
+    "http://192.168.1.51:5001", #Camilo
+    "http://192.168.1.51:5002", # Sebastian
+    "http://192.168.1.51:5003"  #Daniel
 ]
-CHUNK_SIZE = 1024
 
 def upload_file(file_name, file_bytes):
     if "username" not in session:
         return "❌ Debes iniciar sesión para subir archivos."
 
     username = session["username"]
-    user_folder = username  # puedes usar os.makedirs si guardas localmente
-
     fragments = {}
 
     try:
-        index = 0
-        while index * CHUNK_SIZE < len(file_bytes):
-            chunk = file_bytes[index * CHUNK_SIZE : (index + 1) * CHUNK_SIZE]
+        total_size = len(file_bytes)
+        num_nodes = len(NODES)
+        chunk_size = total_size // num_nodes
+
+        for index in range(num_nodes):
+            start = index * chunk_size
+            end = (index + 1) * chunk_size if index < num_nodes - 1 else total_size
+            chunk = file_bytes[start:end]
+
             encrypted_chunk = encrypt_chunk(chunk)
             fragment_id = hashlib.sha256(encrypted_chunk).hexdigest()
-            node = NODES[index % len(NODES)]
+            node = NODES[index]
 
             files = {"file": (fragment_id, encrypted_chunk)}
             data = {
@@ -51,18 +55,22 @@ def upload_file(file_name, file_bytes):
                 fragments[fragment_id] = {"node": node, "index": index}
             else:
                 return f"❌ Error al almacenar fragmento en {node}: {response.text}"
-            index += 1
 
     except Exception as e:
         return f"❌ Error al procesar el archivo: {e}"
 
+    # Enviar info al tracker
     tracker_data = {"file_name": file_name, "fragments": fragments, "user": username}
     requests.post(f"{TRACKER_URL}/register_fragments", json=tracker_data)
 
-    # Guardar nombre en la base de datos
-    files_collection.insert_one({"username": username, "file_name": file_name})
-    return f"✔ Archivo '{file_name}' subido y registrado exitosamente."
+    # Guardar archivo con fecha
+    files_collection.insert_one({
+        "username": username,
+        "file_name": file_name,
+        "upload_date": datetime.now()
+    })
 
+    return f"✔ Archivo '{file_name}' subido y registrado exitosamente."
 
 def recover_file(file_name):
     try:
@@ -90,32 +98,48 @@ def recover_file(file_name):
         return None, f"❌ Error al conectar con el tracker: {e}"
 
 @app.route('/', methods=['GET', 'POST'])
-def index():
+def login():
+    if request.method == 'POST':
+        username = request.form.get("username")
+        password = request.form.get("password")
+        user = users_collection.find_one({"username": username, "password": password})
+        if user:
+            session["username"] = username
+            return redirect(url_for('dashboard'))
+        return render_template("login.html", message="❌ Usuario o contraseña incorrectos.")
+    return render_template("login.html")
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    if "username" not in session:
+        return redirect(url_for('login'))
+
+    username = session.get("username")
     message = ""
+
     if request.method == 'POST':
         if 'upload' in request.form:
             file = request.files['file']
             if file:
                 filename = secure_filename(file.filename)
-                file_bytes = file.read()  # Leemos directamente el contenido en memoria
+                file_bytes = file.read()
                 message = upload_file(filename, file_bytes)
-                return render_template("index.html", message=message)
 
-        if 'recover' in request.form:
+        elif 'recover' in request.form:
             filename = request.form.get("recover_filename")
             content, message = recover_file(filename)
             if content:
-                return send_file(BytesIO(content), as_attachment=True, download_name=f"reconstructed_{filename}")
-            return render_template("index.html", message=message)
-    
-    username = session.get("username")
-    user_files = []
-    if username:
-        user_files = [f["file_name"] for f in files_collection.find({"username": username})]
+                flash(message)
+                return send_file(BytesIO(content), as_attachment=True, download_name=f"{filename}")
+
+        elif 'delete' in request.form:
+            filename = request.form.get("delete_filename")
+            files_collection.delete_one({"username": username, "file_name": filename})
+            message = f"✔ Archivo '{filename}' eliminado (solo de la vista del usuario)."
+
+    user_files = list(files_collection.find({"username": username}))
 
     return render_template("index.html", message=message, user_files=user_files, username=username)
-
-app.secret_key = "clave_secreta"  # necesaria para usar sesiones
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -128,23 +152,10 @@ def register():
         return redirect(url_for('login'))
     return render_template("register.html")
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form.get("username")
-        password = request.form.get("password")
-        user = users_collection.find_one({"username": username, "password": password})
-        if user:
-            session["username"] = username
-            return redirect(url_for('index'))
-        return render_template("login.html", message="❌ Usuario o contraseña incorrectos.")
-    return render_template("login.html")
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", debug=True, port=5004)
+    app.run(host="0.0.0.0", debug=True, port=5004)

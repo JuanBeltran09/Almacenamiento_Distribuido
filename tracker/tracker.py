@@ -1,16 +1,22 @@
 from flask import Flask, request, jsonify
+import json, os
 
 app = Flask(__name__)
 
-nodes = {}  # { "http://nodo1": cantidad_de_fragmentos }
-files_registry = {}  # { "archivo.pdf": { "fragmento1": {"node": "http://nodo1", "index": 0} } }
+REGISTRY_FILE = "registry.json"
+files_registry = {}  
+nodes = {}
+
+# Cargar registro al iniciar
+if os.path.exists(REGISTRY_FILE):
+    with open(REGISTRY_FILE, "r") as f:
+        files_registry = json.load(f)
+        print("[✔] Registro de archivos cargado.")
 
 @app.route('/register_node', methods=['POST'])
 def register_node():
-    """Registra un nodo de almacenamiento."""
     data = request.json
     node_id = data.get("node_id")
-   
 
     if node_id and node_id not in nodes:
         nodes[node_id] = 0
@@ -19,7 +25,6 @@ def register_node():
 
 @app.route('/register_fragments', methods=['POST'])
 def register_fragments():
-    """ Registra los fragmentos de un archivo en el tracker """
     data = request.json
     file_name = data.get("file_name")
     fragments = data.get("fragments")
@@ -29,16 +34,18 @@ def register_fragments():
 
     files_registry[file_name] = fragments
 
-    print(f"[✔] Se registraron {len(fragments)} fragmentos para {file_name}")
+    # Guardar en disco
+    with open(REGISTRY_FILE, "w") as f:
+        json.dump(files_registry, f)
 
+    print(f"[✔] Se registraron {len(fragments)} fragmentos para {file_name}")
     return jsonify({"message": f"Fragmentos de {file_name} registrados"}), 200
 
 @app.route('/get_fragments/<file_name>', methods=['GET'])
 def get_fragments(file_name):
-    """Devuelve los fragmentos de un archivo."""
     if file_name in files_registry:
         return jsonify(files_registry[file_name]), 200
     return jsonify({"error": "Archivo no encontrado"}), 404
 
 if __name__ == '__main__':
-    app.run(host='192.168.43.156', port=5000)
+    app.run(host='0.0.0.0', port=5000)

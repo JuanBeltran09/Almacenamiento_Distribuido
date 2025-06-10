@@ -4,8 +4,8 @@ import os
 
 app = Flask(__name__)
 
-NODE_ID = "node2"
-PORT = 5002
+NODE_ID = "node3"
+PORT = 5003
 STORAGE_DIR = os.path.join(os.path.dirname(__file__), "storage")
 
 TRACKER_URL = "http://192.168.1.51:5000" #colocar id sebastian
