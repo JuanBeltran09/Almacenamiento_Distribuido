@@ -23,21 +23,26 @@ def register_node():
 @app.route('/store_fragment', methods=['POST'])
 def store_fragment():
     fragment_id = request.form.get("fragment_id")
+    user = request.form.get("user")  
     file = request.files.get("file")
 
-    if fragment_id and file:
-        file_path = os.path.join(STORAGE_DIR, fragment_id)
+    if fragment_id and file and user:
+        # Crear la subcarpeta del usuario si no existe
+        user_dir = os.path.join(STORAGE_DIR, user)
+        os.makedirs(user_dir, exist_ok=True)
+
+        file_path = os.path.join(user_dir, fragment_id)
         file.save(file_path)
 
         requests.post(f"{TRACKER_URL}/store_fragment", json={"node_id": NODE_ID, "fragment_id": fragment_id})
 
-        return jsonify({"message": f"Fragmento {fragment_id} almacenado en {NODE_ID}"}), 200
+        return jsonify({"message": f"Fragmento {fragment_id} almacenado en {NODE_ID} para el usuario {user}"}), 200
 
     return jsonify({"error": "Datos incorrectos"}), 400
 
-@app.route('/get_fragment/<fragment_id>', methods=['GET'])
-def get_fragment(fragment_id):
-    file_path = os.path.join(STORAGE_DIR, fragment_id)
+@app.route('/get_fragment/<user>/<fragment_id>', methods=['GET'])
+def get_fragment(user, fragment_id):
+    file_path = os.path.join(STORAGE_DIR, user, fragment_id)
 
     if os.path.exists(file_path):
         return send_file(file_path, mimetype='application/octet-stream')

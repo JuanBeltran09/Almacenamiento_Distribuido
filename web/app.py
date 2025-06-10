@@ -47,7 +47,7 @@ def upload_file(file_name, file_bytes):
                 "fragment_id": fragment_id,
                 "index": index,
                 "node_id": node,
-                "user": username
+                "user": username  
             }
 
             response = requests.post(f"{node}/store_fragment", files=files, data=data)
@@ -74,6 +74,7 @@ def upload_file(file_name, file_bytes):
 
 def recover_file(file_name):
     try:
+        username = session.get("username")
         response = requests.get(f"{TRACKER_URL}/get_fragments/{file_name}")
         if response.status_code != 200:
             return None, "❌ Archivo no encontrado en el tracker."
@@ -84,7 +85,7 @@ def recover_file(file_name):
 
         for frag_id, frag_data in ordered:
             node = frag_data["node"]
-            resp = requests.get(f"{node}/get_fragment/{frag_id}")
+            resp = requests.get(f"{node}/get_fragment/{username}/{frag_id}")
             if resp.status_code == 200:
                 chunk = decrypt_chunk(resp.content)
                 if chunk is None:
