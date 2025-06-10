@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>🌐 Cliente Web - Almacenamiento Distribuido</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 2em;
+      background: linear-gradient(270deg, #e0eafc, #cfdef3);
+      background-size: 400% 400%;
+      animation: backgroundFlow 15s ease infinite;
+      color: #333;
+    }
+
+    @keyframes backgroundFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2em;
+      font-size: 2em;
+    }
+
+    form {
+      background: #ffffffcc;
+      border-radius: 12px;
+      padding: 1.5em;
+      max-width: 500px;
+      margin: 1em auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h3 {
+      margin-top: 0;
+      color: #0077cc;
+    }
+
+    input[type="file"],
+    input[type="text"] {
+      width: 100%;
+      padding: 0.7em;
+      margin-top: 0.5em;
+      margin-bottom: 1em;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1em;
+    }
+
+    button {
+      background: #0077cc;
+      color: #fff;
+      border: none;
+      padding: 0.7em 1.5em;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #005fa3;
+    }
+
+    .message {
+      margin-top: 1em;
+      text-align: center;
+      font-weight: bold;
+      padding: 1em;
+      border-radius: 8px;
+    }
+
+    .message:empty {
+      display: none;
+    }
+
+    #uploadAnimation {
+      display: none;
+      margin-top: 1em;
+    }
+
+    #uploadAnimation .text {
+      text-align: center;
+      margin-bottom: 0.5em;
+      font-style: italic;
+    }
+
+    #uploadAnimation .bar-container {
+      width: 100%;
+      background: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #progressBar {
+      width: 0%;
+      height: 10px;
+      background: #0077cc;
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌐 Cliente Web - Almacenamiento Distribuido</h1>
+
+  {% if username %}
+    <p>🔐 Sesión iniciada como <strong>{{ username }}</strong></p>
+    <h3>Tus archivos subidos:</h3>
+    <ul>
+      {% for file in user_files %}
+        <li>{{ file }}</li>
+      {% endfor %}
+    </ul>
+    <a href="/logout">Cerrar sesión</a>
+  {% else %}
+    <a href="/login">Iniciar sesión</a> | <a href="/register">Registrarse</a>
+  {% endif %}
+
+
+  <form method="POST" enctype="multipart/form-data">
+    <h3>Subir Archivo</h3>
+    <input type="file" name="file" required>
+    <button type="submit" name="upload">📤 Subir</button>
+
+    <div id="uploadAnimation">
+      <div class="text">Subiendo archivo...</div>
+      <div class="bar-container">
+        <div id="progressBar"></div>
+      </div>
+    </div>
+  </form>
+
+  <form method="POST">
+    <h3>Recuperar Archivo</h3>
+    <input type="text" name="recover_filename" placeholder="nombre_del_archivo.ext" required>
+    <button type="submit" name="recover">📥 Recuperar</button>
+  </form>
+
+  {% if message %}
+    <div class="message">{{ message }}</div>
+  {% endif %}
+
+  <script>
+    const uploadForm = document.querySelector('form[enctype]');
+    const uploadBtn = uploadForm.querySelector('button[name="upload"]');
+    const uploadAnim = document.getElementById('uploadAnimation');
+    const progressBar = document.getElementById('progressBar');
+
+    uploadForm.addEventListener('submit', (e) => {
+      uploadAnim.style.display = 'block';
+      progressBar.style.width = '0%';
+
+      let progress = 0;
+      const fakeInterval = setInterval(() => {
+        progress += Math.random() * 10;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(fakeInterval);
+        }
+        progressBar.style.width = `${progress}%`;
+      }, 200);
+    });
+  </script>
+</body>
+</html>

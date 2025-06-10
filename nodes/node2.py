@@ -8,7 +8,7 @@ NODE_ID = "node2"
 PORT = 5002
 STORAGE_DIR = os.path.join(os.path.dirname(__file__), "storage")
 
-TRACKER_URL = "http://localhost:5000"
+TRACKER_URL = "http://192.168.43.156:5000"
 
 if not os.path.exists(STORAGE_DIR):
     os.makedirs(STORAGE_DIR)
@@ -46,4 +46,4 @@ def get_fragment(fragment_id):
 
 if __name__ == '__main__':
     register_node()
-    app.run(host='0.0.0.0', port=PORT)
+    app.run(host='192.168.43.156', port=PORT)

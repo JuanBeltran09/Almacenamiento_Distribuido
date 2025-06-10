@@ -4,12 +4,13 @@ import hashlib
 from encryption.crypto import encrypt_chunk, decrypt_chunk
 
 # Configuración
-TRACKER_URL = "http://localhost:5000"
+TRACKER_URL = "http://172.20.235.79:5000"
 NODES = [
-    "http://localhost:5001",
-    "http://localhost:5002",
-    "http://localhost:5003"
+    "http://172.20.235.79:5001",
+    "http://172.20.235.79:5002",
+    "http://192.168.1.51:5003"
 ]
+
 CHUNK_SIZE = 1024  # Tamaño de los fragmentos en bytes
 
 CLIENT_DIR = os.path.dirname(__file__)  # Asegura que se use la carpeta client/
